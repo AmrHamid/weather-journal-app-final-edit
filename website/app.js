@@ -4,101 +4,79 @@ const feelings = document.getElementById('feelings');
 
 // Create a new date instance dynamically with JS
 let d = new Date();
-let newDate = d.getMonth()+'.'+ d.getDate()+'.'+ d.getFullYear();
+let newDate = d.getMonth()+1 +'.'+ d.getDate()+'.'+ d.getFullYear();
 
-const getDate = () => {
-    const date = new Date();
-    return date.toDateString();
-  }
-
-http://api.openweathermap.org/data/2.5/weather?id=30740&appid=47685c1768bc1734f701bbf9140c7875
+// http://api.openweathermap.org/data/2.5/weather?id=30740&appid=47685c1768bc1734f701bbf9140c7875
 // Personal API Key for OpenWeatherMap API
 
 var baseURL = 'http://api.openweathermap.org/data/2.5/weather?id=';
-let apiKey = '47685c1768bc1734f701bbf9140c7875';
-let addApi = '&APPID=';
+let apiKey = '&appid=47685c1768bc1734f701bbf9140c7875';
 
 // Event listener to add function to existing HTML DOM element
 
-document.getElementById('generate').addEventListener('click', performAction);
+document.getElementById("generate").addEventListener("click", generateWeather);
+function generateWeather(){
+  addData()
+    .then(displayData);
+};
 
-function performAction(e){
-  const newid =  document.getElementById('id').value;
-  getWeather(baseURL,newid, addApi, apiKey)
-  saveData();
-  }
+const addData = async() => {
+  const weather = await getApi();
+  const feeling = document.getElementById("feelings").value;
+  postData("/data", {date:newDate, temp:weather, feelings:feeling});
+};
 
-  /* Function called by event listener */
-
-const getWeather = async (baseURL, newid, addApi, apiKey)=>{
-
-  const res = await fetch(baseURL+newid+addApi+apiKey)
+const displayData = async() => {
+  const allD = await getData("/all");
   try {
-    const data = await res.json();
-    console.log(data)
-    return data;
-  }  catch(error) {
-    console.log("error", error);
-  }
-}
-
-/* Function to GET Web API Data*/
-const saveData = async () => {
-    data.date = getDate();
-    data.feelings = feelings.value;
-    data.temp = await getTemp();
-    updateUI();
-  }
-
-  const getTemp = async () => {
-    const id = document.getElementById('id').value;
-    const endpoint = baseURL + id + addApi + apiKey;
-    try {
-      const response = await fetch(endpoint);
-      if(response.ok) {
-        const jsonResponse = await response.json();
-        return jsonResponse.main.temp;
-      }
+    document.getElementById('date').innerHTML = `Date: ${allD.date}`;
+    document.getElementById('temp').innerHTML = `Temperature is : ${allD.temp}&#8451;`;
+    document.getElementById('content').innerHTML = `You are feeling: ${allD.feelings}`;
     } catch(error) {
-      console.log(error.message);
-    }
-  }
-
-/* Function to POST data */
-
-const postData = async (url = '', data = {}) => {
-    const response = await fetch('/addWeather', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type':'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(data),
-    });
-
-    try {
-        const newData = await response.json();
-        return newData;
-    } catch(error) {
-        console.log('error', error);
+      console.log('error on displayData', error);
     };
 };
 
-/*Function to update UI*/
-const updateUI = async (url = '', data = {}) => {
-    const request = await fetch ('/weatherData')
+/* Function to GET Web API Weather Data*/
+const getApi = async () => {
+  const id = document.getElementById("id").value;
+  const weatherApi = await fetch(`${baseURL}${id}&units=metric${apiKey}`);
+  try {
+      const weather = await weatherApi.json();
+      const temp = weather.main.temp;
+      return temp;
+  } catch(error) {
+      console.log('error in getAPI', error);
+  };
+};
+/* Function to GET weather Data */
 
-    try{
-        const allData = await request.json();
-        date.innerHTML = 'Today is ' + data.date;
-        temp.innerHTML = data.temp + '&deg;C';
-        content.innerHTML = 'Feelings: ' + data.feelings;
-
-        document.getElementById("entryHolder").style.display = "block"
-        document.getElementById('id').value = "";
-        document.getElementById('feelings').value = "";
-    } catch (error){
-        console.log("error", error);
+const getData = async (url='')=>{
+    const response = await fetch(url);
+    try {
+      const data = await response.json();
+      return data;
+    }catch(error) {
+    console.log("error in getData", error);
     }
-}
+};
+
+
+/* Function to POST weather data */
+const postData = async ( url = '', data = {})=>{
+      const response = await fetch(url, {
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+      credentials: 'same-origin',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+      try {
+        const newData = await response.json();
+        console.log(newData);
+        return newData;
+      }catch(error) {
+      console.log("error in postData", error);
+      }
+  };

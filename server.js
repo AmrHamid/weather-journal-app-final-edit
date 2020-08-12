@@ -1,5 +1,5 @@
 // Setup empty JS object to act as endpoint for all routes
-const projectData = {};
+projectData = {};
 
 // Require Express to run server and routes
 const bodyParser =require("body-parser");
@@ -20,19 +20,24 @@ app.use(cors());
 app.use(express.static('website'));
 
 // Setup Server
-const port = 8000;
+const port = process.env.PORT || 3000;
 const server = app.listen(port, listening);
 function listening() {
-    console.log(`server running on localhost: ${port}`);
+    console.log('The local server is running on http://localhost:' + port);
 };
-// Post Route
-app.post('/addWeather', function (req, res) {
-    projectData = req.body;
-    console.log('post request: received');
-    console.log(projectData);
-    res.send('Post received');
-});
+
 // Callback function to complete GET '/all'
-app.get('/weatherData', function(req, res) {
+app.get("/all", function(req, res){
     res.send(projectData);
-})
+});
+
+// Post Route
+app.post("/data", function(req, res) {
+	const newData = {
+		temp: req.body.temp,
+		date: req.body.date,
+		feelings: req.body.feelings
+	};
+	projectData = newData;
+	res.send(projectData);
+});
