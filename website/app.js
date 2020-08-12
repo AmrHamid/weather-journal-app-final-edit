@@ -39,8 +39,8 @@ const displayData = async() => {
 
 /* Function to GET Web API Weather Data*/
 const getApi = async () => {
-  const id = document.getElementById("id").value;
-  const weatherApi = await fetch(`${baseURL}${id}&units=metric${apiKey}`);
+  const zip = document.getElementById("zip").value;
+  const weatherApi = await fetch(`${baseURL}${zip}&units=metric${apiKey}`);
   try {
       const weather = await weatherApi.json();
       const temp = weather.main.temp;
